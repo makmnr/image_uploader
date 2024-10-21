@@ -124,7 +124,6 @@ resource "aws_api_gateway_integration" "delete_image_integration" {
   uri                     = aws_lambda_function.image_service.invoke_arn
 }
 
-# Deploy the API to the v1 stage
 resource "aws_api_gateway_deployment" "api_deployment" {
   depends_on = [
     aws_api_gateway_integration.post_user_images_integration,
@@ -134,5 +133,27 @@ resource "aws_api_gateway_deployment" "api_deployment" {
   ]
 
   rest_api_id = aws_api_gateway_rest_api.images_api.id
-  stage_name  = "v1"
+}
+
+resource "aws_api_gateway_stage" "stage" {
+  depends_on = [aws_cloudwatch_log_group.log_group]
+  deployment_id = aws_api_gateway_deployment.api_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.images_api.id
+  stage_name    = "v1"
+}
+
+resource "aws_cloudwatch_log_group" "log_group" {
+  name              = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.images_api.id}/v1"
+  retention_in_days = 7
+}
+
+resource "aws_api_gateway_method_settings" "settings" {
+  rest_api_id = aws_api_gateway_rest_api.images_api.id
+  stage_name  = aws_api_gateway_stage.stage.stage_name
+  method_path = "*/*"
+
+  settings {
+    metrics_enabled = true
+    logging_level   = "INFO"
+  }
 }

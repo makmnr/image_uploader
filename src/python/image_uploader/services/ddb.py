@@ -8,8 +8,7 @@ from image_uploader.commons.logger import logger
 from image_uploader.models import DBModel
 
 # Initialize the DynamoDB resource
-dynamodb = boto3.resource('dynamodb',
-                          region_name=constants.REGION)
+dynamodb = boto3.resource('dynamodb',region_name=constants.REGION)
 
 
 # Replace with your table name
@@ -18,11 +17,14 @@ def get_table(table_name):
     table = dynamodb.Table(table_name)
     return table
 
-
 def create_item(item: DBModel):
+    # Initialize the DynamoDB resource
     table = get_table(item.table_name)
-    print(item.__dict__)
-    table.put_item(Item=item.__dict__)
+    try:
+        table.put_item(Item=item.__dict__)
+    except Exception as e:
+        logger.error("Error occurred", exc_info=True)  # Log the stack trace
+        raise
 
 
 def get_item(item: DBModel):

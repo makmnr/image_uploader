@@ -1,6 +1,6 @@
 from flask import jsonify, request, send_file, Blueprint
 
-from image_uploader.tasks import image_uploader_task as task
+from image_uploader.tasks import image_task as task
 from image_uploader.commons.logger import logger
 
 image_api = Blueprint('image_api', __name__)
@@ -14,7 +14,7 @@ def upload_image(user_id):
 
     # Call the task to handle image upload logic
     image = task.upload_image(request, user_id)
-    return image
+    return image.__dict__
 
 
 @image_api.route('/images', methods=['GET'])
@@ -23,7 +23,9 @@ def list_images():
 
     # Call the task to handle image upload logic
     images = task.list_images()
-    return images
+    images_response = [image.__dict__ for image in images]
+
+    return images_response
 
 
 @image_api.route('/users/<user_id>/images/<image_id>', methods=['GET'])
