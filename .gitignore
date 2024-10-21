@@ -1,2 +1,10 @@
 .idea/*
 .DS_Store
+dist
+.venv
+poetry.lock
+src/terraform/.terraform*
+src/terraform/archive*
+src/terraform/terraform.tfstate*
+package
+*__pycache*
