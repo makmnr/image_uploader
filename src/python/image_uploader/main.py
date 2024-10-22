@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
 
 def handler(event, context):
-    return awsgi.response(app, event, context, base64_content_types={"image/png"})
+    return awsgi.response(app, event, context)
 
 # from io import BytesIO
 #

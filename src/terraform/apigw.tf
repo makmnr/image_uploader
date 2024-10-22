@@ -140,6 +140,25 @@ resource "aws_api_gateway_stage" "stage" {
   deployment_id = aws_api_gateway_deployment.api_deployment.id
   rest_api_id   = aws_api_gateway_rest_api.images_api.id
   stage_name    = "v1"
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.log_group.arn
+    format          = jsonencode({
+      requestId   = "$context.requestId",
+      ip          = "$context.identity.sourceIp",
+      caller      = "$context.identity.caller",
+      user        = "$context.identity.user",
+      requestTime = "$context.requestTime",
+      httpMethod  = "$context.httpMethod",
+      resourcePath = "$context.resourcePath",
+      status      = "$context.status",
+      responseLength = "$context.responseLength"
+    })
+  }
+
+  # Enable CloudWatch logging
+  xray_tracing_enabled = true
+
 }
 
 resource "aws_cloudwatch_log_group" "log_group" {
@@ -155,5 +174,14 @@ resource "aws_api_gateway_method_settings" "settings" {
   settings {
     metrics_enabled = true
     logging_level   = "INFO"
+    data_trace_enabled    = true
   }
+}
+
+resource "aws_lambda_permission" "api_gateway_invoke" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.image_service.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.images_api.execution_arn}/*/*"
 }

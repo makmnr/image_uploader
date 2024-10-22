@@ -1,0 +1,50 @@
+#!/bin/bash
+
+set -e  # Exit immediately if a command exits with a non-zero status
+
+# Variables for your API Gateway details
+API_ID="zq8j7kvr3c"
+STAGE="v1"
+DELETE_RESOURCE_ID="mz6lat3cun"    # The resource ID for DELETE method
+GET_RESOURCE_ID="mz6lat3cun"       # The resource ID for GET method
+POST_RESOURCE_ID="log1g5iiom"      # The resource ID for POST method
+GET_LIST_RESOURCE_ID="a8x2ued01o"  # The resource ID for GET (List) method
+
+# Fetching details for the POST method
+POST_METHOD=$(awslocal apigateway get-method --rest-api-id $API_ID --resource-id $POST_RESOURCE_ID --http-method POST)
+
+# Fetching details for the GET method
+GET_LIST_METHOD=$(awslocal apigateway get-method --rest-api-id $API_ID --resource-id $GET_LIST_RESOURCE_ID --http-method GET)
+
+# Fetching details for the DELETE method
+DELETE_METHOD=$(awslocal apigateway get-method --rest-api-id $API_ID --resource-id $DELETE_RESOURCE_ID --http-method DELETE)
+
+# Fetching details for the GET method
+GET_METHOD=$(awslocal apigateway get-method --rest-api-id $API_ID --resource-id $GET_RESOURCE_ID --http-method GET)
+
+# Create temporary files for comparison
+TEMP_POST=$(mktemp)
+TEMP_GET=$(mktemp)
+TEMP_DELETE=$(mktemp)
+TEMP_GET_LIST=$(mktemp)
+
+# Save method outputs to temporary files
+echo "$POST_METHOD" > "$TEMP_POST"
+echo "$GET_METHOD" > "$TEMP_GET"
+echo "$DELETE_METHOD" > "$TEMP_DELETE"
+echo "$GET_LIST_METHOD" > "$TEMP_GET_LIST"
+
+# Compare POST and GET methods
+echo "Comparing POST and GET methods:"
+diff "$TEMP_POST" "$TEMP_GET" || echo "Differences found between POST and GET methods."
+
+# Compare POST and DELETE methods
+echo "Comparing POST and DELETE methods:"
+diff "$TEMP_POST" "$TEMP_DELETE" || echo "Differences found between POST and DELETE methods."
+
+# Compare POST and GET (List) methods
+echo "Comparing POST and GET (List) methods:"
+diff "$TEMP_POST" "$TEMP_GET_LIST" || echo "Differences found between POST and GET (List) methods."
+
+# Clean up temporary files
+rm -f "$TEMP_POST" "$TEMP_GET" "$TEMP_DELETE" "$TEMP_GET_LIST"

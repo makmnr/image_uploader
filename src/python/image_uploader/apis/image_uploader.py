@@ -2,6 +2,7 @@ from flask import jsonify, request, send_file, Blueprint
 
 from image_uploader.tasks import image_task as task
 from image_uploader.commons.logger import logger
+from image_uploader.models.image import Image
 
 image_api = Blueprint('image_api', __name__)
 
